@@ -32,11 +32,11 @@ def getLinks():
 			links.append(link.get('href'))
 	return links
 
-#def getXML(url):
-#	newURL = getDateURL(url)
-#	links = getLinks()
-#	for link in links:
-
+def getXML(url):
+	newURL = getDateURL(url)
+	links = getLinks()
+	for link in links:
+		
 
 print getXML(url)
 for i in getLinks():
