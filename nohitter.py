@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from xml.dom import minidom
 import datetime, urllib2
 
 url = "http://gd2.mlb.com/components/game/mlb"
@@ -35,8 +36,11 @@ def getLinks():
 def getXML(url):
 	newURL = getDateURL(url)
 	links = getLinks()
+	xmlLinks = []
 	for link in links:
-		
+		tempurl = newURL + link + "/boxscore.xml"
+		xmlLinks.append(tempurl)
+	return xmlLinks
 
 print getXML(url)
 for i in getLinks():
