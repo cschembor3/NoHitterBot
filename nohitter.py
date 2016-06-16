@@ -1,54 +1,74 @@
 from bs4 import BeautifulSoup
 from xml.dom import minidom
 import datetime, urllib2
+import xml.etree.ElementTree as ET
 
 url = "http://gd2.mlb.com/components/game/mlb"
 dt = datetime.datetime.now()
 
 def getMonth():
-	month = str(dt.month)
-	if (int(dt.month) < 10):
-		day = "0" + str(dt.month)
-	return day
+    month = str(dt.month)
+    if (int(dt.month) < 10):
+        day = "0" + str(dt.month)
+    return day
 
 def getYear():
-	return str(dt.year)
+    return str(dt.year)
 
 def getDay():
-	day = str(dt.day)
-	if (int(dt.day) < 10):
-		day = "0" + str(dt.day)
-	return day
+    day = str(dt.day)
+    if (int(dt.day) < 10):
+        day = "0" + str(dt.day)
+    return day
 
 def getDateURL(url):
-	return url + "/year_" + getYear() + "/month_" + getMonth() + "/day_" + getDay() + "/"
+    return url + "/year_" + getYear() + "/month_" + getMonth() + "/day_" + getDay() + "/"
 
 def getLinks():
-	dateURL = getDateURL(url)
-	page = urllib2.urlopen(dateURL)
-	soup = BeautifulSoup(page, "lxml")
-	links = []
-	for link in soup.find_all('a'):
-		if ("gid" in link.get('href')):
-			links.append(link.get('href'))
-	return links
+    dateURL = getDateURL(url)
+    page = urllib2.urlopen(dateURL)
+    soup = BeautifulSoup(page, "lxml")
+    links = []
+    for link in soup.find_all('a'):
+        if ("gid" in link.get('href')):
+            links.append(link.get('href'))
+    return links
 
 def getXML(url):
-	newURL = getDateURL(url)
-	links = getLinks()
-	xmlLinks = []
-	for link in links:
-		tempurl = newURL + link
-		page = urllib2.urlopen(tempurl)
-		soup = BeautifulSoup(page, "lxml")
-		for xmlLink in soup.find_all('a'):
-			if ("boxscore.xml" == xmlLink.get('href')):
-				xmlLinks.append(tempurl + "boxscore.xml")
-	return xmlLinks
+    newURL = getDateURL(url)
+    links = getLinks()
+    xmlLinks = []
+    for link in links:
+        tempurl = newURL + link
+        page = urllib2.urlopen(tempurl)
+        soup = BeautifulSoup(page, "lxml")
+        for xmlLink in soup.find_all('a'):
+            if ("boxscore.xml" == xmlLink.get('href')):
+                xmlLinks.append(tempurl + "boxscore.xml")
+    return xmlLinks
+
+#Side === Home/Away
+def getStartingPitcher(url, side):
+    xmlstr = urllib2.urlopen(url).read()
+    root = ET.fromstring(xmlstr)
+    pitcherTags = []
+    for p in root.findall('pitching'):
+        pitcherTags.append(p)
+
+    xml = minidom.parseString(xmlstr)
+    if (xml.getElementsByTagName('pitching')[0].getAttribute('team_flag') != side):
+        for node in pitcherTags[1]:
+            if (node.tag == 'pitcher'):
+                return node.attrib.get('name_display_first_last')
+    else:
+        temp = xml.getElementsByTagName('pitcher')[0]
+        return temp.getAttribute('name_display_first_last')
+
 
 def checkNoHitter():
-	xmlLinks = getXML(url)
-	for i in xmlLinks:
-		
+    xmlLinks = getXML(url)
+    for i in xmlLinks:
+        print(getStartingPitcher(i, "away"))
+
 
 checkNoHitter()
