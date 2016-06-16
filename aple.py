@@ -1,16 +1,19 @@
 from twython import Twython
 
-APP_KEY = 
+with open("secret.txt") as f:
+    secret = f.readlines()
 
-APP_SECRET =
+APP_KEY = secret[0].rstrip()
 
-OAUTH_TOKEN = 
+APP_SECRET = secret[1].rstrip()
 
-OAUTH_TOKEN_SECRET =
+OAUTH_TOKEN = secret[2].rstrip()
+
+OAUTH_TOKEN_SECRET = secret[3]
 
 twitter = Twython(APP_KEY, APP_SECRET,
-                  OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+                 OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 
 
 
-twitter.update_status(status='I am a beast') 
+twitter.update_status(status='This works')
