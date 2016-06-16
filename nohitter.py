@@ -21,12 +21,12 @@ def getDay():
 	return day
 
 def getDateURL(url):
-	return url + "/year_" + getYear() + "/month_" + getMonth() + "/day_" + getDay()
+	return url + "/year_" + getYear() + "/month_" + getMonth() + "/day_" + getDay() + "/"
 
 def getLinks():
 	dateURL = getDateURL(url)
 	page = urllib2.urlopen(dateURL)
-	soup = BeautifulSoup(page)
+	soup = BeautifulSoup(page, "lxml")
 	links = []
 	for link in soup.find_all('a'):
 		if ("gid" in link.get('href')):
@@ -38,10 +38,17 @@ def getXML(url):
 	links = getLinks()
 	xmlLinks = []
 	for link in links:
-		tempurl = newURL + link + "/boxscore.xml"
-		xmlLinks.append(tempurl)
+		tempurl = newURL + link
+		page = urllib2.urlopen(tempurl)
+		soup = BeautifulSoup(page, "lxml")
+		for xmlLink in soup.find_all('a'):
+			if ("boxscore.xml" == xmlLink.get('href')):
+				xmlLinks.append(tempurl + "boxscore.xml")
 	return xmlLinks
 
-print getXML(url)
-for i in getLinks():
-	print(i)
+def checkNoHitter():
+	xmlLinks = getXML(url)
+	for i in xmlLinks:
+		
+
+checkNoHitter()
