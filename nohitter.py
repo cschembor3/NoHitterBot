@@ -7,6 +7,14 @@ import twitter
 
 url = "http://gd2.mlb.com/components/game/mlb"
 dt = datetime.datetime.now()
+teams = {"min":"Minnesota Twins", "bos":"Boston Red Sox", "nya":"New York Yankees", "ari":"Arizona Diamondbacks",
+         "atl":"Atlanta Braves", "bal":"Baltimore Orioles", "chn":"Chicago Cubs", "cha":"Chicago White Sox",
+         "cle":"Cleveland Indians", "col":"Colorado Rockies", "det":"Detroit Tigers", "hou":"Houston Astros",
+         "kca":"Kansas City Royals", "ana":"Los Angeles Angels", "lan":"Los Angeles Dodgers", "mil":"Milwaukee Brewers",
+         "cin":"Cincinnati Reds", "nyn":"New York Mets", "oak":"Oakland Athletics", "phi":"Philadelphia Phillies",
+         "pit":"Pittsburgh Pirates", "sdn":"San Diego Padres", "sfn":"San Francisco Giants", "sea":"Seattle Mariners",
+         "sln":"St. Louis Cardinals", "tba":"Tampa Bay Rays", "tex":"Texas Rangers", "tor":"Toronto Blue Jays",
+         "was":"Washington Nationals", "mia":"Miami Marlins"}
 
 def getMonth():
     month = str(dt.month)
@@ -66,6 +74,40 @@ def getStartingPitcher(url, side):
         temp = xml.getElementsByTagName('pitcher')[0]
         return temp.getAttribute('name_display_first_last')
 
+def spStillIn(abrev):
+    url1 = None
+    isHome = False
+    for xmlLink in getXML(url):
+        if (abrev in xmlLink):
+            url1 = xmlLink
+    xmlstr = urllib2.urlopen(url1).read()
+    if (url1 == None):
+        print("An error has occurred")
+        return
+    else:
+        url2 = url1
+        url2 = url2.replace("boxscore.xml", "boxscore.json")
+        print url1
+        print url2
+        page = urllib2.urlopen(url2)
+        soup = BeautifulSoup(page, "lxml")
+        parsed_json = json.loads(soup.get_text())
+        if (teams[abrev] == parsed_json['data']['boxscore']['home_fname']):
+            isHome = True
+    count = 0
+    pitcherTags = []
+    root = ET.fromstring(xmlstr)
+    for p in root.findall('pitching'):
+        pitcherTags.append(p)
+    if (isHome):
+        for node in pitcherTags[1]:
+            if (node.tag == 'pitcher'):
+                count+=1
+    else:
+        for node in pitcherTags[0]:
+            if (node.tag == 'pitcher'):
+                count+=1
+    return (count == 1)
 
 def checkNoHitter():
     xmlLinks = getXML(url)
@@ -84,7 +126,6 @@ def getJson(url):
 			if ("boxscore.json" == jsonLink.get('href')):
 				jsonLinks.append(tempurl + "boxscore.json")
 	return jsonLinks
-
 
 def getData(url):
 	links = getJson(url)
@@ -105,6 +146,6 @@ def postToTwitter(string):
 
 
 
-print getData(url)
-
+#print getData(url)
+print spStillIn("chn")
 #checkNoHitter()
