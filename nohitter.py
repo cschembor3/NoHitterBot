@@ -86,24 +86,25 @@ def getJson(url):
 	return jsonLinks
 
 
-def getTeams(url):
+def getData(url):
 	links = getJson(url)
-	teams = []
+	data = {}
+	count = 0
 	for link in links:
 		page = urllib2.urlopen(link)
 		soup = BeautifulSoup(page,"lxml")
 		parsed_json = json.loads(soup.get_text())
-		teams.append(parsed_json['data']['boxscore']['away_fname'])
-		teams.append(parsed_json['data']['boxscore']['home_fname'])
-	return teams
+		data['team' + str(count)]['team_name'] = parsed_json['data']['boxscore']['away_fname']
+		data['team' + str(count)]['team_name'] = parsed_json['data']['boxscore']['home_fname']
+	return data
+
+
 
 def postToTwitter(string):
 	twitter.post(string)
 
 
 
-print getTeams(url)
-
-postToTwitter("Testing")
+print getData(url)
 
 #checkNoHitter()
