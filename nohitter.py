@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 from xml.dom import minidom
 import datetime, urllib2
 import xml.etree.ElementTree as ET
+import json
+import twitter
 
 url = "http://gd2.mlb.com/components/game/mlb"
 dt = datetime.datetime.now()
@@ -52,7 +54,7 @@ def getStartingPitcher(url, side):
     xmlstr = urllib2.urlopen(url).read()
     root = ET.fromstring(xmlstr)
     pitcherTags = []
-    for p in root.findall('pitching'):
+    for p in root.findall('pitching'):		
         pitcherTags.append(p)
 
     xml = minidom.parseString(xmlstr)
@@ -70,5 +72,38 @@ def checkNoHitter():
     for i in xmlLinks:
         print(getStartingPitcher(i, "away"))
 
+def getJson(url):
+	newURL = getDateURL(url)
+	links = getLinks()
+	jsonLinks = []
+	for link in links:
+		tempurl = newURL + link
+		page = urllib2.urlopen(tempurl)
+		soup = BeautifulSoup(page, "lxml")
+		for jsonLink in soup.find_all('a'):
+			if ("boxscore.json" == jsonLink.get('href')):
+				jsonLinks.append(tempurl + "boxscore.json")
+	return jsonLinks
 
-checkNoHitter()
+
+def getTeams(url):
+	links = getJson(url)
+	teams = []
+	for link in links:
+		page = urllib2.urlopen(link)
+		soup = BeautifulSoup(page,"lxml")
+		parsed_json = json.loads(soup.get_text())
+		teams.append(parsed_json['data']['boxscore']['away_fname'])
+		teams.append(parsed_json['data']['boxscore']['home_fname'])
+	return teams
+
+def postToTwitter(string):
+	twitter.post(string)
+
+
+
+print getTeams(url)
+
+postToTwitter("Testing")
+
+#checkNoHitter()
