@@ -9,10 +9,10 @@ def init():
 	OAUTH_TOKEN_SECRET = secret[3]
 	return [APP_KEY,APP_SECRET,OAUTH_TOKEN,OAUTH_TOKEN_SECRET]
 
-def post():
+def post(string):
 	secretData = init()
 	twitter = Twython(secretData[0], secretData[1],secretData[2], secretData[3])
-	twitter.update_status(status='This works')
+	twitter.update_status(status=string)
 
 
 

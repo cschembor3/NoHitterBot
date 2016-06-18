@@ -131,7 +131,6 @@ def getData(url):
     count = 0
     games = isGameOver(links)
     gameCount = 0
-    print len(links)
     for link in links:
         page = urllib2.urlopen(link)
         soup = BeautifulSoup(page,"lxml")
@@ -140,7 +139,7 @@ def getData(url):
         data.append({})
 
         link1 = link.replace(".json", ".xml")
-        data[count]['hits'] = parsed_json['data']['boxscore']['linescore']['away_team_hits']
+        data[count]['opposingHits'] = parsed_json['data']['boxscore']['linescore']['home_team_hits']
         data[count]['name'] = parsed_json['data']['boxscore']['away_fname']
         data[count]['side'] = 'away'
         data[count]['pitcher'] = getStartingPitcher(link1, data[count]['side'])
@@ -149,7 +148,7 @@ def getData(url):
         data[count]['inning'] = inning[len(inning) - 1]['inning']
 
         #if (count + 1 < len(links) + 1):
-        data[count+1]['hits'] = parsed_json['data']['boxscore']['linescore']['home_team_hits']
+        data[count+1]['opposingHits'] = parsed_json['data']['boxscore']['linescore']['away_team_hits']
         data[count + 1]['name'] = parsed_json['data']['boxscore']['home_fname']
         data[count+1]['side'] = 'home'
         data[count+1]['pitcher'] = getStartingPitcher(link1, data[count+1]['side'])
@@ -158,11 +157,7 @@ def getData(url):
         data[count+1]['inning'] = inning[len(inning) - 1]['inning']
 
         data[count]['isOver'] = games[gameCount]
-        print data[count]['name'] + " --- "
-        print str(data[count]['isOver'])
-        data[count+1]['isOver'] = games[gameCount]
-        print data[count+1]['name'] + " --- "
-        print str(data[count+1]['isOver'])        
+        data[count+1]['isOver'] = games[gameCount]     
 
         gameCount += 1
         count += 2
@@ -184,8 +179,15 @@ def isGameOver(links):
 def postToTwitter(string):
 	twitter.post(string)
 
-getData(url)
+def validate():
+	arrDict = getData(url)
+	for dictionary in arrDict:
+		if (int(dictionary['inning']) >= 6 and not dictionary['isOver'] and dictionary['isValid'] and int(dictionary['opposingHits']) == 0):
+			postToTwitter(dictionary['pitcher'] +" has a no hitter in the " + dictionary['inning'] + " inning")
+def run():
+	while true:
+		validate()
+		time.sleep(5*60)
 
-#print getData(url)
-#print spStillIn("chn")
-#checkNoHitter()
+
+run()
