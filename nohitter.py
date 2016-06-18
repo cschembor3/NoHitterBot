@@ -26,7 +26,7 @@ def getYear():
     return str(dt.year)
 
 def getDay():
-    day = str(dt.day)
+    day = str(dt.day-1)
     if (int(dt.day) < 10):
         day = "0" + str(dt.day)
     return day
@@ -87,8 +87,6 @@ def spStillIn(abrev):
     else:
         url2 = url1
         url2 = url2.replace("boxscore.xml", "boxscore.json")
-        print url1
-        print url2
         page = urllib2.urlopen(url2)
         soup = BeautifulSoup(page, "lxml")
         parsed_json = json.loads(soup.get_text())
@@ -131,31 +129,63 @@ def getData(url):
     links = getJson(url)
     data = []
     count = 0
+    games = isGameOver(links)
+    gameCount = 0
+    print len(links)
     for link in links:
         page = urllib2.urlopen(link)
         soup = BeautifulSoup(page,"lxml")
         parsed_json = json.loads(soup.get_text())
         data.append({})
         data.append({})
-        
+
+        link1 = link.replace(".json", ".xml")
         data[count]['hits'] = parsed_json['data']['boxscore']['linescore']['away_team_hits']
         data[count]['name'] = parsed_json['data']['boxscore']['away_fname']
         data[count]['side'] = 'away'
+        data[count]['pitcher'] = getStartingPitcher(link1, data[count]['side'])
+        data[count]['isValid'] = spStillIn(teams.keys()[teams.values().index(data[count]['name'])])
+        inning = parsed_json['data']['boxscore']['linescore']['inning_line_score']
+        data[count]['inning'] = inning[len(inning) - 1]['inning']
 
+        #if (count + 1 < len(links) + 1):
         data[count+1]['hits'] = parsed_json['data']['boxscore']['linescore']['home_team_hits']
         data[count + 1]['name'] = parsed_json['data']['boxscore']['home_fname']
         data[count+1]['side'] = 'home'
+        data[count+1]['pitcher'] = getStartingPitcher(link1, data[count+1]['side'])
+        data[count+1]['isValid'] = spStillIn(teams.keys()[teams.values().index(data[count+1]['name'])])
+        inning = parsed_json['data']['boxscore']['linescore']['inning_line_score']
+        data[count+1]['inning'] = inning[len(inning) - 1]['inning']
 
+        data[count]['isOver'] = games[gameCount]
+        print data[count]['name'] + " --- "
+        print str(data[count]['isOver'])
+        data[count+1]['isOver'] = games[gameCount]
+        print data[count+1]['name'] + " --- "
+        print str(data[count+1]['isOver'])        
+
+        gameCount += 1
         count += 2
     return data
 
-
+def isGameOver(links):
+    games = []
+    count = 0
+    for link in links:
+        page = urllib2.urlopen(link)
+        soup = BeautifulSoup(page.read(), "lxml")
+        text = soup.get_text()
+        if ('"win":"true"' in text):
+            games.append(True)
+        else :
+            games.append(False)
+    return games
 
 def postToTwitter(string):
 	twitter.post(string)
 
-
+getData(url)
 
 #print getData(url)
-print spStillIn("chn")
+#print spStillIn("chn")
 #checkNoHitter()
