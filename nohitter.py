@@ -128,16 +128,26 @@ def getJson(url):
 	return jsonLinks
 
 def getData(url):
-	links = getJson(url)
-	data = {}
-	count = 0
-	for link in links:
-		page = urllib2.urlopen(link)
-		soup = BeautifulSoup(page,"lxml")
-		parsed_json = json.loads(soup.get_text())
-		data['team' + str(count)]['team_name'] = parsed_json['data']['boxscore']['away_fname']
-		data['team' + str(count)]['team_name'] = parsed_json['data']['boxscore']['home_fname']
-	return data
+    links = getJson(url)
+    data = []
+    count = 0
+    for link in links:
+        page = urllib2.urlopen(link)
+        soup = BeautifulSoup(page,"lxml")
+        parsed_json = json.loads(soup.get_text())
+        data.append({})
+        data.append({})
+        
+        data[count]['hits'] = parsed_json['data']['boxscore']['linescore']['away_team_hits']
+        data[count]['name'] = parsed_json['data']['boxscore']['away_fname']
+        data[count]['side'] = 'away'
+
+        data[count+1]['hits'] = parsed_json['data']['boxscore']['linescore']['home_team_hits']
+        data[count + 1]['name'] = parsed_json['data']['boxscore']['home_fname']
+        data[count+1]['side'] = 'home'
+
+        count += 2
+    return data
 
 
 
